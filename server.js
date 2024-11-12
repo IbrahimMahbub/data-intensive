@@ -101,6 +101,7 @@ app.get('/combinedData', async (req, res) => {
   }
 });
 
+
 // Insert data into MySQL (LocationA)
 app.post('/locationA', (req, res) => {
   const { ProductName, Price, Stock } = req.body;
