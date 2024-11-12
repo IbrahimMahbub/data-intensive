@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management System</title>
+    <style>
+        /* General styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        /* Form styling */
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            width: 300px;
+        }
+
+        label, input {
+            font-size: 16px;
+            margin: 5px 0;
+            width: 100%;
+        }
+
+        input[type="number"],
+        input[type="text"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Table styling */
+        table {
+            width: 80%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Inventory Management System</h1>
+
+    <div class="form-container">
+        <h3>Manage Products and Inventory</h3>
+        <label for="databaseSelect">Database:</label>
+        <select id="databaseSelect">
+            <option value="locationA">Location A (MySQL)</option>
+            <option value="locationB">Location B (MongoDB)</option>
+        </select>
+
+        <label for="productId">Product ID:</label>
+        <input type="number" id="productId" placeholder="Enter Product ID">
+
+        <label for="productName">Product Name:</label>
+        <input type="text" id="productName" placeholder="Enter Product Name">
+
+        <label for="price">Price:</label>
+        <input type="number" id="price" placeholder="Enter Price">
+
+        <label for="stock">Stock:</label>
+        <input type="number" id="stock" placeholder="Enter Stock">
+
+        <button onclick="insertData()">Insert Data</button>
+        <button onclick="updateData()">Update Data</button>
+        <button onclick="deleteData()">Delete Data</button>
+        <button onclick="fetchData()">Fetch Data</button>
+    </div>
+
+    <div id="output"></div>
+
+    <script>
+        async function fetchData() {
+            const location = document.getElementById("databaseSelect").value;
+            const response = await fetch(`/${location}`);
+            const data = await response.json();
+            displayData(data);
+        }
+
+        function displayData(data) {
+            let outputDiv = document.getElementById("output");
+            outputDiv.innerHTML = '';  // Clear previous content
+
+            for (let tableName in data) {
+                let tableData = data[tableName];
+                let tableHtml = `
+                    <h3>${tableName}</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                ${Object.keys(tableData[0]).map(col => `<th>${col}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableData.map(row => `
+                                <tr>
+                                    ${Object.values(row).map(value => `<td>${value}</td>`).join('')}
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                outputDiv.innerHTML += tableHtml;
+            }
+        }
+
+        async function insertData() {
+            const location = document.getElementById("databaseSelect").value;
+            const data = getFormData();
+            const response = await fetch(`/${location}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            alert(result.message);
+            fetchData();  // Refresh data display
+        }
+
+        async function updateData() {
+            const location = document.getElementById("databaseSelect").value;
+            const productId = document.getElementById("productId").value;
+            const data = getFormData();
+            const response = await fetch(`/${location}/${productId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            alert(result.message);
+            fetchData();  // Refresh data display
+        }
+
+        async function deleteData() {
+            const location = document.getElementById("databaseSelect").value;
+            const productId = document.getElementById("productId").value;
+            const response = await fetch(`/${location}/${productId}`, { method: 'DELETE' });
+            const result = await response.json();
+            alert(result.message);
+            fetchData();  // Refresh data display
+        }
+
+        function getFormData() {
+            return {
+                ProductID: parseInt(document.getElementById("productId").value),
+                ProductName: document.getElementById("productName").value,
+                Price: parseFloat(document.getElementById("price").value),
+                Stock: parseInt(document.getElementById("stock").value)
+            };
+        }
+    </script>
+</body>
+</html>
